@@ -1,34 +1,12 @@
 from fastapi import FastAPI
-import requests
+from indicators import get_prices, ema, rsi, parabolic_sar
 from datetime import datetime
-from indicators import ema, rsi, parabolic_sar
 
 app = FastAPI()
 
-BINANCE_URL = "https://api.binance.com/api/v3/klines"
-
-def get_prices(symbol="BTCUSDT", interval="1m", limit=50):
-    params = {
-        "symbol": symbol,
-        "interval": interval,
-        "limit": limit
-    }
-    data = requests.get(BINANCE_URL, params=params).json()
-    closes = [float(candle[4]) for candle in data]
-    highs = [float(candle[2]) for candle in data]
-    lows = [float(candle[3]) for candle in data]
-    return closes, highs, lows
-
-
-@app.get("/")
-def root():
-    return {"status": "running"}
-
-
 @app.get("/health")
 def health():
-    return {"ok": True}
-
+    return {"status": "running"}
 
 @app.get("/signal")
 def signal(symbol: str = "BTCUSDT"):
@@ -51,8 +29,8 @@ def signal(symbol: str = "BTCUSDT"):
         confidence = 85
 
     return {
-        "asset": symbol,
-        "action": action,
+        "pair": symbol,
+        "signal": action,
         "ema_fast": round(ema_fast, 4),
         "ema_slow": round(ema_slow, 4),
         "rsi": round(rsi_val, 2),
